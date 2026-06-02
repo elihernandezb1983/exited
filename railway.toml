@@ -1,0 +1,6 @@
+[build]
+builder = "RAILPACK"
+
+[deploy]
+startCommand = "python murrieta_slet_bot.py"
+restartPolicyType = "ON_FAILURE"
