@@ -13,6 +13,8 @@ from core.console_log import detail, info
 from telegram.session import (
     SESSION_PATH,
     load_meta,
+    print_session_dump_for_railway,
+    restore_session_from_env,
     save_meta,
     should_reset_session,
     wipe_session_files,
@@ -165,6 +167,8 @@ class TelegramBridge:
             print("Telegram: нужны TELEGRAM_API_ID и TELEGRAM_API_HASH")
             return
 
+        restore_session_from_env()
+
         reset, reason = should_reset_session(phone, api_id)
         if reset:
             wipe_session_files()
@@ -194,6 +198,10 @@ class TelegramBridge:
         me = await self.client.get_me()
         if phone:
             save_meta(phone=phone, user_id=me.id, api_id=api_id)
+
+        if os.getenv("TELEGRAM_DUMP_SESSION", "").lower() in ("1", "true", "yes", "on"):
+            print_session_dump_for_railway()
+
         self._watch_chats = await self._resolve_watch_chats()
         if not self._watch_chats:
             await self._print_dialogs_hint()

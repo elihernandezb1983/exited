@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import os
 import re
@@ -12,6 +13,7 @@ import config
 
 SESSION_PATH = config.BASE_DIR / "data" / "telegram_user"
 META_PATH = config.BASE_DIR / "data" / "telegram_account.json"
+SESSION_FILE = Path(str(SESSION_PATH) + ".session")
 
 
 def normalize_phone(phone: str) -> str:
@@ -36,6 +38,60 @@ def save_meta(*, phone: str, user_id: int, api_id: int) -> None:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
 
+def restore_session_from_env() -> bool:
+    """Восстановить сессию из Railway/env (TELEGRAM_SESSION_B64 + meta)."""
+    session_b64 = os.getenv("TELEGRAM_SESSION_B64", "").strip()
+    meta_b64 = os.getenv("TELEGRAM_META_B64", "").strip()
+    meta_json = os.getenv("TELEGRAM_ACCOUNT_JSON", "").strip()
+
+    if not session_b64 and not meta_b64 and not meta_json:
+        return False
+
+    SESSION_PATH.parent.mkdir(parents=True, exist_ok=True)
+    wrote = False
+
+    if session_b64:
+        SESSION_FILE.write_bytes(base64.b64decode(session_b64))
+        wrote = True
+
+    if meta_json:
+        META_PATH.write_text(meta_json, encoding="utf-8")
+        wrote = True
+    elif meta_b64:
+        META_PATH.write_bytes(base64.b64decode(meta_b64))
+        wrote = True
+
+    return wrote
+
+
+def export_session_env_lines() -> list[str]:
+    """Строки для .env / Railway Variables."""
+    if not SESSION_FILE.is_file():
+        raise FileNotFoundError(
+            "Нет data/telegram_user.session — сначала: python tg_list_chats.py"
+        )
+
+    lines = [
+        "TELEGRAM_SESSION_B64="
+        + base64.b64encode(SESSION_FILE.read_bytes()).decode("ascii"),
+    ]
+    if META_PATH.is_file():
+        lines.append(
+            "TELEGRAM_META_B64="
+            + base64.b64encode(META_PATH.read_bytes()).decode("ascii"),
+        )
+    return lines
+
+
+def print_session_dump_for_railway() -> None:
+    """Один раз после логина: скопировать из Deploy Logs в Railway Variables."""
+    lines = export_session_env_lines()
+    print("\n=== TELEGRAM SESSION (скопируй в Railway Variables, потом убери TELEGRAM_CODE) ===")
+    for line in lines:
+        print(line)
+    print("=== конец ===\n")
+
+
 def relogin_requested() -> bool:
     return os.getenv("TELEGRAM_RELOGIN", "").lower() in ("1", "true", "yes", "on")
 
@@ -45,8 +101,9 @@ def should_reset_session(phone: str, api_id: int) -> tuple[bool, str]:
         return True, "в .env включён TELEGRAM_RELOGIN=true"
 
     meta = load_meta()
-    session_file = Path(str(SESSION_PATH) + ".session")
-    if phone and session_file.is_file() and not meta:
+    if phone and SESSION_FILE.is_file() and not meta:
+        if os.getenv("TELEGRAM_SESSION_B64", "").strip():
+            return False, ""
         return True, "в .env указан номер, но сессия ещё не привязана"
 
     if not meta:

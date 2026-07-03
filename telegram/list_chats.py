@@ -9,9 +9,25 @@ from dotenv import load_dotenv
 from telethon import TelegramClient
 
 import config
-from telegram.session import SESSION_PATH, should_reset_session, wipe_session_files
+from telegram.session import (
+    SESSION_PATH,
+    restore_session_from_env,
+    save_meta,
+    should_reset_session,
+    wipe_session_files,
+)
 
 load_dotenv()
+
+
+def _code_callback() -> str:
+    code = os.getenv("TELEGRAM_CODE", "").strip()
+    return code or input("Код из Telegram: ").strip()
+
+
+def _password_callback() -> str:
+    pwd = os.getenv("TELEGRAM_PASSWORD", "").strip()
+    return pwd or input("Пароль 2FA Telegram: ").strip()
 
 
 async def main() -> None:
@@ -22,6 +38,8 @@ async def main() -> None:
     if not api_id or not api_hash:
         raise SystemExit("Заполните TELEGRAM_API_ID и TELEGRAM_API_HASH в .env")
 
+    restore_session_from_env()
+
     reset, reason = should_reset_session(phone, api_id)
     if reset:
         wipe_session_files()
@@ -29,9 +47,15 @@ async def main() -> None:
 
     SESSION_PATH.parent.mkdir(parents=True, exist_ok=True)
     client = TelegramClient(str(SESSION_PATH), api_id, api_hash)
-    await client.start(phone=phone or None)
+    await client.start(
+        phone=phone or None,
+        code_callback=_code_callback,
+        password=_password_callback,
+    )
 
     me = await client.get_me()
+    if phone:
+        save_meta(phone=phone, user_id=me.id, api_id=api_id)
     print(f"Аккаунт: {me.first_name} (@{me.username})\n")
     print("ID              | Тип        | Название")
     print("-" * 60)
@@ -50,7 +74,8 @@ async def main() -> None:
     print(
         "\nВ .env укажите ID строкой (как в таблице), например:\n"
         "  TELEGRAM_CHATS=-1001234567890\n"
-        "или @username канала."
+        "или @username канала.\n\n"
+        "Для Railway: python tg_export_session.py"
     )
 
 
