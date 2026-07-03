@@ -7,6 +7,7 @@ import os
 from typing import TYPE_CHECKING
 
 from telethon import TelegramClient, events
+from telethon.errors import FloodWaitError
 
 import config
 from core.console_log import detail, info
@@ -18,6 +19,7 @@ from telegram.session import (
     save_meta,
     should_reset_session,
     wipe_session_files,
+    can_prompt_for_code,
 )
 
 if TYPE_CHECKING:
@@ -34,7 +36,7 @@ class TelegramBridge:
 
     @staticmethod
     def is_enabled() -> bool:
-        flag = os.getenv("TELEGRAM_ENABLED", "true").lower()
+        flag = os.getenv("TELEGRAM_ENABLED", "false").lower()
         if flag not in ("1", "true", "yes", "on"):
             return False
         api_id = os.getenv("TELEGRAM_API_ID", "") or str(config.TELEGRAM_API_ID or "")
@@ -184,11 +186,35 @@ class TelegramBridge:
                 await self.client.disconnect()
                 self.client = None
                 return
-            await self.client.start(
-                phone=phone,
-                code_callback=self._code_callback,
-                password=self._password_callback,
-            )
+            if not can_prompt_for_code():
+                print(
+                    "Telegram: сессия не авторизована. На Railway укажите TELEGRAM_CODE "
+                    "(один деплой) или TELEGRAM_SESSION_B64 после локального логина."
+                )
+                await self.client.disconnect()
+                self.client = None
+                return
+            await self.client.disconnect()
+            wipe_session_files()
+            self.client = TelegramClient(str(SESSION_PATH), api_id, api_hash)
+            await self.client.connect()
+            try:
+                await self.client.start(
+                    phone=phone,
+                    code_callback=self._code_callback,
+                    password=self._password_callback,
+                )
+            except FloodWaitError as exc:
+                hours = exc.seconds // 3600
+                mins = (exc.seconds % 3600) // 60
+                print(
+                    f"Telegram: FloodWait — слишком много запросов кода, "
+                    f"подождите ~{hours} ч {mins} мин ({exc.seconds} с). "
+                    "Discord продолжит работу без TG."
+                )
+                await self.client.disconnect()
+                self.client = None
+                return
 
         if not await self.client.is_user_authorized():
             await self.client.disconnect()

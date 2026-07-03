@@ -96,16 +96,23 @@ def relogin_requested() -> bool:
     return os.getenv("TELEGRAM_RELOGIN", "").lower() in ("1", "true", "yes", "on")
 
 
+def can_prompt_for_code() -> bool:
+    """Есть код в env или интерактивный терминал (локально)."""
+    if os.getenv("TELEGRAM_CODE", "").strip():
+        return True
+    try:
+        import sys
+
+        return sys.stdin.isatty()
+    except Exception:
+        return False
+
+
 def should_reset_session(phone: str, api_id: int) -> tuple[bool, str]:
     if relogin_requested():
         return True, "в .env включён TELEGRAM_RELOGIN=true"
 
     meta = load_meta()
-    if phone and SESSION_FILE.is_file() and not meta:
-        if os.getenv("TELEGRAM_SESSION_B64", "").strip():
-            return False, ""
-        return True, "в .env указан номер, но сессия ещё не привязана"
-
     if not meta:
         return False, ""
 
