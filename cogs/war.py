@@ -5,7 +5,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import config
-import storage
+from core import storage
 from audit_log import log_usage_from_interaction
 from cogs.panel import _can_use_panel
 from war.state import get_attack_cd_minutes, get_defense_cd_minutes, get_war_state, mutate_war

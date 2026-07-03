@@ -10,10 +10,12 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 import config
-from console_log import detail, info
+from core.console_log import detail, info
+from contracts.views import ContractActionView
+from gatherings.views import GatheringActionView
 from panels import get_persistent_views
-from telegram_bridge import TelegramBridge
-from ticket_views import TicketReviewView
+from telegram import TelegramBridge
+from tickets.views import TicketReviewView
 from war.handler import WarHandler
 
 load_dotenv()
@@ -43,6 +45,8 @@ class GlowBot(commands.Bot):
         for view in get_persistent_views():
             self.add_view(view)
         self.add_view(TicketReviewView())
+        self.add_view(ContractActionView())
+        self.add_view(GatheringActionView())
         await self._sync_app_commands()
 
         if self.telegram_bridge.is_enabled():

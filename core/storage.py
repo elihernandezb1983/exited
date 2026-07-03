@@ -18,8 +18,13 @@ def _default_guild() -> dict[str, Any]:
     return {
         "ticket_category_id": None,
         "staff_role_ids": [],
+        "moderator_role_ids": [],
         "accepted_role_id": None,
         "next_ticket_number": 1,
+        "ticket_cooldowns": {},
+        "contracts_by_message": {},
+        "gatherings_by_message": {},
+        "afk_users": {},
         "war_channel_id": None,
         "war_report_channel_id": None,
         "war_cd_channel_id": None,

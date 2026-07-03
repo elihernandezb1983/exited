@@ -8,8 +8,8 @@ import discord
 from discord import ui
 
 import config
-import storage
 from audit_log import log_usage_from_interaction
+from core.permissions import can_review_ticket
 
 ACCEPT_ID = "ticket:review:accept"
 REJECT_ID = "ticket:review:reject"
@@ -17,12 +17,7 @@ APPLICANT_FOOTER_PREFIX = "applicant:"
 
 
 def _can_review_ticket(interaction: discord.Interaction) -> bool:
-    if not interaction.guild or not isinstance(interaction.user, discord.Member):
-        return False
-    if interaction.user.guild_permissions.administrator:
-        return True
-    staff_ids = storage.get_guild(interaction.guild.id).get("staff_role_ids") or []
-    return any(role.id in staff_ids for role in interaction.user.roles)
+    return can_review_ticket(interaction)
 
 
 def applicant_id_from_message(message: discord.Message | None) -> int | None:

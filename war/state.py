@@ -8,8 +8,8 @@ from collections.abc import Callable
 from typing import Any
 
 import config
-import storage
-from console_log import detail
+from core import storage
+from core.console_log import detail
 from war.cooldowns import _default_cd_state
 
 log = logging.getLogger(__name__)

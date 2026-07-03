@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 
 import config
-import storage
+from core import storage
 
 
 def resolve_channel_id(

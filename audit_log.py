@@ -12,8 +12,8 @@ import discord
 from discord import ui
 
 import config
-import storage
-from async_utils import fire_and_forget
+from core import storage
+from core.async_utils import fire_and_forget
 
 if TYPE_CHECKING:
     from bot import GlowBot
@@ -22,8 +22,8 @@ DATA_DIR = config.BASE_DIR / "data" / "logs"
 ACTIONS_FILE = DATA_DIR / "actions.jsonl"
 USAGE_FILE = DATA_DIR / "usage.jsonl"
 
-ACTION_ACCENT = 0xFEE75C
-USAGE_ACCENT = 0x57F287
+ACTION_ACCENT = config.EMBED_COLOR
+USAGE_ACCENT = config.EMBED_COLOR
 
 _lock = threading.Lock()
 
@@ -36,6 +36,17 @@ _KIND_META: dict[str, dict[str, str]] = {
     "ticket.settings.staff_add": {"emoji": "👁️", "title": "Тикеты: роль просмотра добавлена"},
     "ticket.settings.staff_remove": {"emoji": "🚫", "title": "Тикеты: роль просмотра убрана"},
     "ticket.settings.accepted_role": {"emoji": "🎖️", "title": "Тикеты: роль при принятии"},
+    "ticket.cooldown.cleared": {"emoji": "⏱️", "title": "Тикеты: кулдаун снят"},
+    "contract.created": {"emoji": "📋", "title": "Создан контракт"},
+    "contract.joined": {"emoji": "🙋", "title": "Участие в контракте"},
+    "contract.picked": {"emoji": "✅", "title": "Пик контракта"},
+    "contract.declined": {"emoji": "❌", "title": "Отказ по контракту"},
+    "gathering.created": {"emoji": "📢", "title": "Объявлен сбор"},
+    "gathering.published": {"emoji": "📋", "title": "Опубликован список сбора"},
+    "gathering.join_main": {"emoji": "✅", "title": "Запись в основу"},
+    "gathering.join_reserve": {"emoji": "🔄", "title": "Запись в замену"},
+    "panel.contracts.submit": {"emoji": "📋", "title": "Открыта форма контракта"},
+    "modal.contracts.submit": {"emoji": "📨", "title": "Опубликован контракт"},
     "war.settings.stats_channel": {"emoji": "📊", "title": "Войны: канал статистики"},
     "war.settings.screenshots_channel": {"emoji": "📸", "title": "Войны: канал скринов"},
     "war.settings.cooldowns_channel": {"emoji": "⏱️", "title": "Войны: канал кулдаунов"},
@@ -64,6 +75,14 @@ _KIND_META: dict[str, dict[str, str]] = {
     "modal.semya.apply": {"emoji": "📨", "title": "Отправлена заявка в семью"},
     "ticket.review.accept": {"emoji": "✅", "title": "Нажато «Принять»"},
     "ticket.review.reject": {"emoji": "❌", "title": "Нажато «Отказать»"},
+    "access.moderator.add": {"emoji": "🛡️", "title": "Добавлен модератор бота"},
+    "access.moderator.remove": {"emoji": "🚫", "title": "Убран модератор бота"},
+    "access.ticket.add": {"emoji": "🎫", "title": "Добавлен доступ к тикетам"},
+    "access.ticket.remove": {"emoji": "➖", "title": "Убран доступ к тикетам"},
+    "spam.sent": {"emoji": "📣", "title": "Спам-сообщения"},
+    "afk.start": {"emoji": "💤", "title": "Ушёл в AFK"},
+    "afk.end": {"emoji": "👋", "title": "Вышел из AFK"},
+    "panel.afk.go": {"emoji": "💤", "title": "Открыта форма AFK"},
 }
 
 _DETAIL_LABELS: dict[str, str] = {

@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import discord
 
+import config
+
 from war.parser import WarEvent, WarEventKind
 
 OUTCOME_PENDING = "ожидается"
-WAR_EMBED_COLOR = 0xB9BBBE
+WAR_EMBED_COLOR = config.EMBED_COLOR
 
 
 def _field_value(text: str) -> str:

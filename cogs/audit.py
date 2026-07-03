@@ -7,7 +7,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import config
-import storage
+from core import storage
 from audit_log import log_moderation, log_usage_from_interaction
 from cogs.panel import _can_use_panel
 

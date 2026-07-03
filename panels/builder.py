@@ -5,12 +5,14 @@ from pathlib import Path
 import discord
 
 import config
+from .afk import AfkPanelView
 from .family import FamilyPanelView
+from .contracts import ContractsPanelView
 from .vzp import VzpMapsPanelView
 
 
 def _image_path(filename: str) -> Path:
-    return config.FOTO_PANEL_DIR / filename
+    return config.FOTO_DIR / filename
 
 
 def build_panel(panel_id: str) -> tuple[discord.ui.LayoutView, list[discord.File], str | None]:
@@ -39,8 +41,12 @@ def build_panel(panel_id: str) -> tuple[discord.ui.LayoutView, list[discord.File
 
     if panel_id == "semya":
         view = FamilyPanelView(panel_cfg, image_filename=image_filename)
+    elif panel_id == "contracts":
+        view = ContractsPanelView(panel_cfg, image_filename=image_filename)
     elif panel_id == "vzp":
-        view = VzpMapsPanelView(panel_cfg)
+        view = VzpMapsPanelView(panel_cfg, image_filename=image_filename)
+    elif panel_id == "afk":
+        view = AfkPanelView(panel_cfg, image_filename=image_filename)
     else:
         raise KeyError(f"Панель {panel_id!r} не реализована")
 
@@ -55,6 +61,16 @@ def get_persistent_views() -> list[discord.ui.LayoutView]:
             views.append(
                 FamilyPanelView(panel_cfg, image_filename=panel_cfg.get("image"))
             )
+        elif panel_id == "contracts":
+            views.append(
+                ContractsPanelView(panel_cfg, image_filename=panel_cfg.get("image"))
+            )
         elif panel_id == "vzp":
-            views.append(VzpMapsPanelView(panel_cfg))
+            views.append(
+                VzpMapsPanelView(panel_cfg, image_filename=panel_cfg.get("image"))
+            )
+        elif panel_id == "afk":
+            views.append(
+                AfkPanelView(panel_cfg, image_filename=panel_cfg.get("image"))
+            )
     return views

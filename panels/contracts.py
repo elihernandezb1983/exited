@@ -9,11 +9,11 @@ import config
 from audit_log import log_usage_from_interaction
 from core.async_utils import fire_and_forget
 
-from .modals import ApplicationModal
+from .modals import ContractModal
 
 
-class FamilyPanelView(ui.LayoutView):
-    """Панель «Заявка в семью» на Components V2."""
+class ContractsPanelView(ui.LayoutView):
+    """Панель «Контракты» на Components V2."""
 
     def __init__(
         self,
@@ -55,8 +55,8 @@ class FamilyPanelView(ui.LayoutView):
                 discord.SelectOption(
                     label=panel_cfg["select_option_label"],
                     description=panel_cfg.get("select_option_description"),
-                    value="apply",
-                    emoji="📝",
+                    value="submit",
+                    emoji="📋",
                 )
             ],
         )
@@ -79,7 +79,7 @@ class FamilyPanelView(ui.LayoutView):
             return
         await asyncio.sleep(0.4)
         try:
-            view = fresh_family_view(
+            view = fresh_contracts_view(
                 self._panel_cfg,
                 image_url=self._panel_image_url(message),
                 image_filename=self._image_filename,
@@ -91,27 +91,35 @@ class FamilyPanelView(ui.LayoutView):
     async def _on_select(self, interaction: discord.Interaction) -> None:
         if not interaction.guild or not isinstance(interaction.user, discord.Member):
             await interaction.response.send_message(
-                "Заявки принимаются только на сервере.",
+                "Контракты доступны только на сервере.",
                 ephemeral=True,
             )
             return
 
-        await interaction.response.send_modal(ApplicationModal())
+        channel = interaction.channel
+        if not isinstance(channel, discord.TextChannel):
+            await interaction.response.send_message(
+                config.MESSAGES["contract_wrong_channel"],
+                ephemeral=True,
+            )
+            return
+
+        await interaction.response.send_modal(ContractModal())
         log_usage_from_interaction(
             interaction,
-            "panel.semya.apply",
+            "panel.contracts.submit",
             bot=interaction.client,  # type: ignore[arg-type]
         )
-        fire_and_forget(self._reset_select(interaction), name="panel-semya-reset")
+        fire_and_forget(self._reset_select(interaction), name="panel-contracts-reset")
 
 
-def fresh_family_view(
+def fresh_contracts_view(
     panel_cfg: dict,
     *,
     image_url: str | None = None,
     image_filename: str | None = None,
-) -> FamilyPanelView:
-    return FamilyPanelView(
+) -> ContractsPanelView:
+    return ContractsPanelView(
         panel_cfg,
         image_filename=image_filename,
         image_url=image_url,

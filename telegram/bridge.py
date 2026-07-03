@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING
 from telethon import TelegramClient, events
 
 import config
-from console_log import detail, info
-from telegram_session import (
+from core.console_log import detail, info
+from telegram.session import (
     SESSION_PATH,
     load_meta,
     save_meta,

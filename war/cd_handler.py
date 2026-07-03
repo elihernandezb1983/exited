@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING, Any
 import discord
 
 import config
-import storage
-from console_log import detail
+from core import storage
+from core.console_log import detail
 from war.channels import resolve_channel_id
 from war.cooldowns import any_cd_active, build_cooldown_view, get_cd_state
 from war.parser import WarEvent, WarEventKind

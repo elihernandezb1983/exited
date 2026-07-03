@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 import discord
 
 import config
-from console_log import detail
+from core.console_log import detail
 from war.channels import resolve_channel_id
 from war.embeds import build_war_embed, declare_title, player_outcome
 from war.parser import WarEvent, WarEventKind, parse_war_message

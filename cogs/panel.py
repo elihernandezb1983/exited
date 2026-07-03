@@ -7,16 +7,11 @@ from discord.ext import commands
 import config
 from audit_log import log_usage_from_interaction
 from panels import build_panel
+from core.permissions import can_use_panel
 
 
 def _can_use_panel(interaction: discord.Interaction) -> bool:
-    if not interaction.guild or not isinstance(interaction.user, discord.Member):
-        return False
-    if interaction.user.guild_permissions.administrator:
-        return True
-    if not config.PANEL_ALLOWED_ROLE_IDS:
-        return interaction.user.guild_permissions.manage_guild
-    return any(role.id in config.PANEL_ALLOWED_ROLE_IDS for role in interaction.user.roles)
+    return can_use_panel(interaction)
 
 
 class PanelCog(commands.Cog):

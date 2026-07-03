@@ -8,7 +8,9 @@ from typing import Any
 import discord
 from discord import ui
 
-CD_ACCENT = 0xB9BBBE
+import config
+
+CD_ACCENT = config.EMBED_COLOR
 
 
 def _default_cd_state() -> dict[str, Any]:
